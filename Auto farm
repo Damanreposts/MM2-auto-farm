@@ -9,12 +9,13 @@ local players = game:GetService("Players")
 local player = players.LocalPlayer
 local enabled = false
 local gui
+local teleportPosition = Vector3.new(0, 100, 0) -- Position to teleport the player to (100 studs up)
 
 -- Function to teleport player
 local function teleportPlayer()
     if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-        player.Character.HumanoidRootPart.CFrame = CFrame.new(player.Character.HumanoidRootPart.Position + Vector3.new(0, 100, 0))
-        player.Character.Humanoid.PlatformStand = true  -- Freezes the character
+        player.Character.HumanoidRootPart.CFrame = CFrame.new(player.Character.HumanoidRootPart.Position + teleportPosition)
+        player.Character.Humanoid.PlatformStand = true  -- Freezes the character in the air
     end
 end
 
@@ -31,7 +32,7 @@ local function applyRainbowBackground(frame)
     runService.RenderStepped:Connect(function()
         frame.BackgroundColor3 = colors[colorIndex]
         colorIndex = colorIndex % #colors + 1
-        wait(0.1) -- Adjust speed of color change
+        wait(0.2) -- Slower speed of color change to reduce seizure risk
     end)
 end
 
@@ -102,15 +103,17 @@ end
 -- Function to handle player character spawn
 local function onCharacterAdded(character)
     -- Reset the enabled state when the character respawns
-    enabled = false
     createGUI() -- Create GUI again
+    if enabled then
+        teleportPlayer() -- Teleport the player again if enabled
+    end
 end
 
 -- Connect the events
 player.CharacterAdded:Connect(onCharacterAdded)
 if player.Character then
     onCharacterAdded(player.Character) -- Run for the existing character
+end
 
 -- Run GUI setup for the initial spawn
 createGUI()
-end
