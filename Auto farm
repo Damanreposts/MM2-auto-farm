@@ -13,9 +13,26 @@ local gui
 -- Function to teleport player
 local function teleportPlayer()
     if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-        player.Character.HumanoidRootPart.CFrame = CFrame.new(player.Character.HumanoidRootPart.Position + Vector3.new(0, 1000, 0))
+        player.Character.HumanoidRootPart.CFrame = CFrame.new(player.Character.HumanoidRootPart.Position + Vector3.new(0, 100, 0))
         player.Character.Humanoid.PlatformStand = true  -- Freezes the character
     end
+end
+
+-- Function to create a rainbow background effect
+local function applyRainbowBackground(frame)
+    local colors = {
+        Color3.fromRGB(255, 0, 0), Color3.fromRGB(255, 127, 0),
+        Color3.fromRGB(255, 255, 0), Color3.fromRGB(0, 255, 0),
+        Color3.fromRGB(0, 255, 255), Color3.fromRGB(0, 0, 255),
+        Color3.fromRGB(139, 0, 255)
+    }
+    local colorIndex = 1
+
+    runService.RenderStepped:Connect(function()
+        frame.BackgroundColor3 = colors[colorIndex]
+        colorIndex = colorIndex % #colors + 1
+        wait(0.1) -- Adjust speed of color change
+    end)
 end
 
 -- Function to add GUI
@@ -27,9 +44,17 @@ local function createGUI()
     local frame = Instance.new("Frame", gui)
     frame.Size = UDim2.new(0, 200, 0, 150)
     frame.Position = UDim2.new(0.5, -100, 0.5, -75)
-    frame.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
     frame.BackgroundTransparency = 0.5
     frame.BorderSizePixel = 0
+    applyRainbowBackground(frame)
+
+    -- Adding rounded corners to the frame
+    local frameCorner = Instance.new("UICorner", frame)
+    frameCorner.CornerRadius = UDim.new(0, 10)
+
+    -- Draggable functionality
+    frame.Active = true
+    frame.Draggable = true
 
     -- X Button to close GUI
     local closeButton = Instance.new("TextButton", frame)
@@ -38,6 +63,11 @@ local function createGUI()
     closeButton.Text = "X"
     closeButton.TextColor3 = Color3.fromRGB(255, 0, 0)
     closeButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+
+    -- Adding rounded corners to X button
+    local closeButtonCorner = Instance.new("UICorner", closeButton)
+    closeButtonCorner.CornerRadius = UDim.new(0, 5)
+
     closeButton.MouseButton1Click:Connect(function()
         gui.Enabled = false
     end)
@@ -46,23 +76,25 @@ local function createGUI()
     local toggleButton = Instance.new("TextButton", frame)
     toggleButton.Size = UDim2.new(0, 150, 0, 50)
     toggleButton.Position = UDim2.new(0.5, -75, 0.5, -25)
-    toggleButton.Text = "Toggle Teleport"
-    toggleButton.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
+    toggleButton.Text = "Toggle Auto"
+    toggleButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+
+    -- Adding rounded corners to toggle button
+    local toggleButtonCorner = Instance.new("UICorner", toggleButton)
+    toggleButtonCorner.CornerRadius = UDim.new(0, 10)
 
     -- Function to enable/disable teleport
     toggleButton.MouseButton1Click:Connect(function()
         enabled = not enabled
         if enabled then
-            toggleButton.Text = "Stop Teleport"
-            -- Begin detecting round start
-            runService.RenderStepped:Connect(function()
-                if game.Workspace:FindFirstChild("RoundActive") and enabled then
-                    teleportPlayer()
-                end
-            end)
+            toggleButton.Text = "Stop Auto"
+            teleportPlayer() -- Teleport the player when enabled
         else
-            toggleButton.Text = "Toggle Teleport"
-            player.Character.Humanoid.PlatformStand = false -- Unfreeze
+            toggleButton.Text = "Toggle Auto"
+            if player.Character and player.Character:FindFirstChild("Humanoid") then
+                player.Character.Humanoid.PlatformStand = false -- Unfreeze the character
+            end
         end
     end)
 end
