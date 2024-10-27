@@ -7,14 +7,12 @@
 local runService = game:GetService("RunService")
 local players = game:GetService("Players")
 local player = players.LocalPlayer
-local enabled = false
-local gui
-local teleportPosition = Vector3.new(0, 100, 0) -- Position to teleport the player to (100 studs up)
+local teleportHeight = 1000 -- Height to teleport the player to (1000 studs up)
 
 -- Function to teleport player
 local function teleportPlayer()
     if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-        player.Character.HumanoidRootPart.CFrame = CFrame.new(player.Character.HumanoidRootPart.Position + teleportPosition)
+        player.Character.HumanoidRootPart.CFrame = CFrame.new(player.Character.HumanoidRootPart.Position + Vector3.new(0, teleportHeight, 0))
         player.Character.Humanoid.PlatformStand = true  -- Freezes the character in the air
     end
 end
@@ -38,7 +36,7 @@ end
 
 -- Function to add GUI
 local function createGUI()
-    gui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
+    local gui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
     gui.Name = "TeleportGui"
 
     -- Main Frame
@@ -73,47 +71,17 @@ local function createGUI()
         gui.Enabled = false
     end)
 
-    -- Button to toggle teleport
-    local toggleButton = Instance.new("TextButton", frame)
-    toggleButton.Size = UDim2.new(0, 150, 0, 50)
-    toggleButton.Position = UDim2.new(0.5, -75, 0.5, -25)
-    toggleButton.Text = "Toggle Auto"
-    toggleButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-    toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-
-    -- Adding rounded corners to toggle button
-    local toggleButtonCorner = Instance.new("UICorner", toggleButton)
-    toggleButtonCorner.CornerRadius = UDim.new(0, 10)
-
-    -- Function to enable/disable teleport
-    toggleButton.MouseButton1Click:Connect(function()
-        enabled = not enabled
-        if enabled then
-            toggleButton.Text = "Stop Auto"
-            teleportPlayer() -- Teleport the player when enabled
-        else
-            toggleButton.Text = "Toggle Auto"
-            if player.Character and player.Character:FindFirstChild("Humanoid") then
-                player.Character.Humanoid.PlatformStand = false -- Unfreeze the character
-            end
-        end
+    -- Auto teleport when character is added or respawned
+    player.CharacterAdded:Connect(function(character)
+        character:WaitForChild("HumanoidRootPart") -- Wait for the HumanoidRootPart to exist
+        teleportPlayer() -- Teleport the player immediately
     end)
-end
 
--- Function to handle player character spawn
-local function onCharacterAdded(character)
-    -- Reset the enabled state when the character respawns
-    createGUI() -- Create GUI again
-    if enabled then
-        teleportPlayer() -- Teleport the player again if enabled
+    -- Check if the character already exists when the script runs
+    if player.Character then
+        teleportPlayer() -- Teleport the player when the script first runs
     end
 end
 
--- Connect the events
-player.CharacterAdded:Connect(onCharacterAdded)
-if player.Character then
-    onCharacterAdded(player.Character) -- Run for the existing character
-end
-
--- Run GUI setup for the initial spawn
+-- Create the GUI when the player first joins
 createGUI()
