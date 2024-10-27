@@ -1,0 +1,71 @@
+-- Roblox Script (for use in a controlled environment, NOT for use in official Roblox games)
+
+-- Loadstring to run from GitHub, save the code below as a GitHub file and reference it
+-- loadstring(game:HttpGet("https://raw.githubusercontent.com/yourusername/yourrepository/main/yourfilename.lua"))()
+
+-- Variables
+local runService = game:GetService("RunService")
+local players = game:GetService("Players")
+local player = players.LocalPlayer
+local enabled = false
+local gui
+
+-- Function to teleport player
+local function teleportPlayer()
+    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        player.Character.HumanoidRootPart.CFrame = CFrame.new(player.Character.HumanoidRootPart.Position + Vector3.new(0, 1000, 0))
+        player.Character.Humanoid.PlatformStand = true  -- Freezes the character
+    end
+end
+
+-- Function to add GUI
+local function createGUI()
+    gui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
+    gui.Name = "TeleportGui"
+
+    -- Main Frame
+    local frame = Instance.new("Frame", gui)
+    frame.Size = UDim2.new(0, 200, 0, 150)
+    frame.Position = UDim2.new(0.5, -100, 0.5, -75)
+    frame.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+    frame.BackgroundTransparency = 0.5
+    frame.BorderSizePixel = 0
+
+    -- X Button to close GUI
+    local closeButton = Instance.new("TextButton", frame)
+    closeButton.Size = UDim2.new(0, 25, 0, 25)
+    closeButton.Position = UDim2.new(1, -30, 0, 5)
+    closeButton.Text = "X"
+    closeButton.TextColor3 = Color3.fromRGB(255, 0, 0)
+    closeButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    closeButton.MouseButton1Click:Connect(function()
+        gui.Enabled = false
+    end)
+
+    -- Button to toggle teleport
+    local toggleButton = Instance.new("TextButton", frame)
+    toggleButton.Size = UDim2.new(0, 150, 0, 50)
+    toggleButton.Position = UDim2.new(0.5, -75, 0.5, -25)
+    toggleButton.Text = "Toggle Teleport"
+    toggleButton.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
+
+    -- Function to enable/disable teleport
+    toggleButton.MouseButton1Click:Connect(function()
+        enabled = not enabled
+        if enabled then
+            toggleButton.Text = "Stop Teleport"
+            -- Begin detecting round start
+            runService.RenderStepped:Connect(function()
+                if game.Workspace:FindFirstChild("RoundActive") and enabled then
+                    teleportPlayer()
+                end
+            end)
+        else
+            toggleButton.Text = "Toggle Teleport"
+            player.Character.Humanoid.PlatformStand = false -- Unfreeze
+        end
+    end)
+end
+
+-- Run GUI setup
+createGUI()
