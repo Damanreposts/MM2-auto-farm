@@ -99,5 +99,18 @@ local function createGUI()
     end)
 end
 
--- Run GUI setup
+-- Function to handle player character spawn
+local function onCharacterAdded(character)
+    -- Reset the enabled state when the character respawns
+    enabled = false
+    createGUI() -- Create GUI again
+end
+
+-- Connect the events
+player.CharacterAdded:Connect(onCharacterAdded)
+if player.Character then
+    onCharacterAdded(player.Character) -- Run for the existing character
+
+-- Run GUI setup for the initial spawn
 createGUI()
+end
